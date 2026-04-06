@@ -51,7 +51,7 @@ def _extract_recommendation(text: str) -> tuple[str, str]:
 
 
 class ReportGenerator:
-    def __init__(self, company_name: str, ticker: str | None, output_dir: str = "reports"):
+    def __init__(self, company_name: str, ticker: str | None, output_dir: str = "business_model_diagnosis/reports"):
         self.company_name = company_name
         self.ticker = ticker
         self.output_dir = Path(output_dir)

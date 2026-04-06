@@ -49,8 +49,10 @@ The 9 building blocks are:
 
 After the canvas analysis, provide:
 - OVERALL BUSINESS MODEL HEALTH SCORE (0-100) with justification
-- TOP 3 STRATEGIC OPPORTUNITIES
-- TOP 3 CRITICAL RISKS
+- CEO AND MAJOR SHAREHOLDERS
+- SECTOR
+- COMPETITIVE ADVANTAGES
+- MAIN COMPETITORS
 - BUSINESS MODEL ARCHETYPE (e.g., Platform, Long-tail, Freemium, Razor & Blade, etc.)
 
 Be specific, data-driven, and reference actual company details wherever possible.
@@ -154,7 +156,7 @@ class GeminiAnalyzer:
     def _generate(self, prompt: str) -> str:
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.4,

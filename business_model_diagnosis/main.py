@@ -47,7 +47,7 @@ def run_diagnosis(company_name: str, ticker: str | None, output_dir: str, skip_m
     from modules.report_generator import ReportGenerator
 
     gemini_key = os.getenv("GEMINI_API_KEY", "")
-    if not gemini_key or gemini_key == "your_gemini_api_key_here":
+    if not gemini_key or gemini_key == "":
         console.print(Panel(
             "[bold red]ERROR:[/bold red] GEMINI_API_KEY is not set.\n"
             "Please set it in your [yellow].env[/yellow] file or as an environment variable.\n\n"
@@ -105,7 +105,7 @@ def run_diagnosis(company_name: str, ticker: str | None, output_dir: str, skip_m
         )
 
     if ticker and market_data_str and not skip_market:
-        console.print("  [ai] Analyzing market & equity...")
+        console.print("[ai] Analyzing market & equity...")
         market_ai_text = ai.analyze_market(
             company_name=company_name,
             ticker=ticker,
@@ -191,8 +191,8 @@ def main():
         help="Stock ticker symbol (e.g. AAPL). Required for financial & market analysis.",
     )
     parser.add_argument(
-        "--output-dir", "-o", default="reports",
-        help="Directory to save the report (default: reports/)",
+        "--output-dir", "-o", default="business_model_diagnosis/reports",
+        help="Directory to save the report (default: business_model_diagnosis/reports/)",
     )
     parser.add_argument(
         "--no-market", action="store_true",
