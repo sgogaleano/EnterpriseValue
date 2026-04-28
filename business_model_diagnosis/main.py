@@ -45,6 +45,34 @@ def run_diagnosis(company_name: str, ticker: str | None, output_dir: str, skip_m
     from modules.financial_analyzer import FinancialAnalyzer
     from modules.ai_analyzer import GeminiAnalyzer
     from modules.report_generator import ReportGenerator
+    from modules.cache_store import CompanyCacheStore
+
+    cache_store = CompanyCacheStore()
+    cached = cache_store.get_recent(company_name=company_name, max_age_days=30)
+    if cached:
+        if not ticker and cached.get("ticker"):
+            ticker = cached.get("ticker")
+        report = ReportGenerator(company_name, ticker, output_dir=output_dir)
+        report.print_header()
+        console.print()
+        console.print("[bold green]Using cached diagnosis from the last 30 days.[/bold green]")
+        canvas_ai_text = cached.get("canvas_text", "")
+        financial_ai_text = cached.get("financial_text", "")
+        market_ai_text = cached.get("market_text", "")
+        report.print_canvas_analysis(canvas_ai_text)
+        if financial_ai_text:
+            report.print_financial_analysis(financial_ai_text)
+        if market_ai_text:
+            report.print_market_analysis(market_ai_text)
+        saved_path = report.save_report(canvas_ai_text, financial_ai_text, market_ai_text)
+        console.print()
+        console.print(Panel(
+            f"[bold green]Diagnosis complete![/bold green]\n\n"
+            f"Report saved to: [cyan]{saved_path}[/cyan]",
+            border_style="green",
+            padding=(1, 2),
+        ))
+        return
 
     gemini_key = os.getenv("GEMINI_API_KEY", "")
     if not gemini_key or gemini_key == "":
@@ -111,6 +139,15 @@ def run_diagnosis(company_name: str, ticker: str | None, output_dir: str, skip_m
             ticker=ticker,
             market_data=market_data_str,
         )
+
+    cache_store.upsert(
+        company_name=company_name,
+        ticker=ticker,
+        context=context,
+        canvas_text=canvas_ai_text,
+        financial_text=financial_ai_text,
+        market_text=market_ai_text,
+    )
 
     console.print("[green]  AI analysis complete.[/green]")
 
