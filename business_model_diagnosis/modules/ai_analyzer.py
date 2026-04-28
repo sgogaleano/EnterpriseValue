@@ -31,7 +31,7 @@ Using all the information provided below about the company "{company_name}", per
 {market_summary}
 
 For each of the 9 building blocks of the Business Model Canvas, provide:
-1. A detailed analysis (3-5 paragraphs) of the current state
+1. A specific but complete analysis (1 paragraph) of the current state
 2. Key strengths identified
 3. Key weaknesses or risks
 4. Strategic recommendations
