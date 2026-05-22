@@ -28,6 +28,7 @@ class CompanyCacheStore:
                     financial_text TEXT NOT NULL,
                     market_text TEXT NOT NULL,
                     dashboard_json TEXT NOT NULL DEFAULT '{}',
+                    ownership_json TEXT NOT NULL DEFAULT '{}',
                     kpis_json TEXT NOT NULL DEFAULT '[]',
                     created_at_epoch INTEGER NOT NULL,
                     updated_at_epoch INTEGER NOT NULL
@@ -45,6 +46,8 @@ class CompanyCacheStore:
                 conn.execute("ALTER TABLE company_cache ADD COLUMN dashboard_json TEXT NOT NULL DEFAULT '{}' ")
             if "kpis_json" not in columns:
                 conn.execute("ALTER TABLE company_cache ADD COLUMN kpis_json TEXT NOT NULL DEFAULT '[]' ")
+            if "ownership_json" not in columns:
+                conn.execute("ALTER TABLE company_cache ADD COLUMN ownership_json TEXT NOT NULL DEFAULT '{}' ")
 
     @staticmethod
     def _company_key(company_name: str) -> str:
@@ -58,7 +61,7 @@ class CompanyCacheStore:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT company_name, ticker, context_json, canvas_text, financial_text, market_text, dashboard_json, kpis_json, updated_at_epoch
+                SELECT company_name, ticker, context_json, canvas_text, financial_text, market_text, dashboard_json, ownership_json, kpis_json, updated_at_epoch
                 FROM company_cache
                 WHERE company_key = ? AND updated_at_epoch >= ?
                 """,
@@ -74,8 +77,9 @@ class CompanyCacheStore:
             "financial_text": row[4],
             "market_text": row[5],
             "dashboard": json.loads(row[6] or "{}"),
-            "kpis": json.loads(row[7] or "[]"),
-            "updated_at_epoch": row[8],
+            "ownership": json.loads(row[7] or "{}"),
+            "kpis": json.loads(row[8] or "[]"),
+            "updated_at_epoch": row[9],
         }
 
     def upsert(
@@ -87,6 +91,7 @@ class CompanyCacheStore:
         financial_text: str,
         market_text: str,
         dashboard: Optional[dict] = None,
+        ownership: Optional[dict] = None,
         kpis: Optional[list] = None,
     ):
         company_key = self._company_key(company_name)
@@ -95,8 +100,8 @@ class CompanyCacheStore:
             conn.execute(
                 """
                 INSERT INTO company_cache (
-                    company_key, company_name, ticker, context_json, canvas_text, financial_text, market_text, dashboard_json, kpis_json, created_at_epoch, updated_at_epoch
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    company_key, company_name, ticker, context_json, canvas_text, financial_text, market_text, dashboard_json, ownership_json, kpis_json, created_at_epoch, updated_at_epoch
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(company_key) DO UPDATE SET
                     company_name=excluded.company_name,
                     ticker=excluded.ticker,
@@ -105,6 +110,7 @@ class CompanyCacheStore:
                     financial_text=excluded.financial_text,
                     market_text=excluded.market_text,
                     dashboard_json=excluded.dashboard_json,
+                    ownership_json=excluded.ownership_json,
                     kpis_json=excluded.kpis_json,
                     updated_at_epoch=excluded.updated_at_epoch
                 """,
@@ -117,6 +123,7 @@ class CompanyCacheStore:
                     financial_text,
                     market_text,
                     json.dumps(dashboard or {}, ensure_ascii=False),
+                    json.dumps(ownership or {}, ensure_ascii=False),
                     json.dumps(kpis or [], ensure_ascii=False),
                     now_epoch,
                     now_epoch,

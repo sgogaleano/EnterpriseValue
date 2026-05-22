@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -34,9 +35,32 @@ const CANVAS_TITLES: Record<string, { en: string; es: string }> = {
   "Revenue Streams": { en: "Revenue Streams", es: "Fuentes de Ingresos" }
 }
 
+const CANVAS_PREVIEW_CHARS = 280
+
 function AiTextBlock({ text }: { text: string }) {
   if (!text) return null
   return <div className="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-800">{text}</div>
+}
+
+function CanvasBlockContent({ language, text }: { language: Language; text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const normalized = (text || "").trim()
+  if (!normalized) {
+    return <p className="text-sm whitespace-pre-wrap text-slate-700">N/A</p>
+  }
+  const shouldTruncate = normalized.length > CANVAS_PREVIEW_CHARS
+  const displayText = shouldTruncate && !expanded ? `${normalized.slice(0, CANVAS_PREVIEW_CHARS).trimEnd()}...` : normalized
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm whitespace-pre-wrap text-slate-700">{displayText}</p>
+      {shouldTruncate && (
+        <button className="self-start text-xs font-medium text-blue-600" onClick={() => setExpanded((prev) => !prev)} type="button">
+          {expanded ? (language === "en" ? "Show less" : "Ver menos") : (language === "en" ? "Read more" : "Ver más")}
+        </button>
+      )}
+    </div>
+  )
 }
 
 export function DiagnosisResult({ language, result }: Props) {
@@ -50,6 +74,7 @@ export function DiagnosisResult({ language, result }: Props) {
     : null
 
   const dashboard = result.dashboard
+  const ownership = result.ownership
 
   return (
     <div className="flex flex-col gap-6">
@@ -65,6 +90,21 @@ export function DiagnosisResult({ language, result }: Props) {
           </div>
         </CardHeader>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.sectionOwnership}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-slate-700">
+            {t.ownershipTextPrefix} CEO {ownership.ceo || "N/A"}
+            {", "}
+            {(ownership.major_shareholders && ownership.major_shareholders.length > 0 ? ownership.major_shareholders : ["N/A"]).join(", ")}
+            .
+          </p>
+        </CardContent>
+      </Card>
+
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -114,7 +154,7 @@ export function DiagnosisResult({ language, result }: Props) {
             {CANVAS_ORDER.map((key) => (
               <div key={key} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <h3 className="mb-2 text-sm font-semibold text-slate-900">{language === "en" ? CANVAS_TITLES[key].en : CANVAS_TITLES[key].es}</h3>
-                <p className="text-sm whitespace-pre-wrap text-slate-700">{dashboard.canvas[key] || "N/A"}</p>
+                <CanvasBlockContent language={language} text={dashboard.canvas[key] || ""} />
               </div>
             ))}
           </div>

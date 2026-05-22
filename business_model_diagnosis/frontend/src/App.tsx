@@ -2,7 +2,6 @@ import { useState } from "react"
 import { CanvasSection } from "@/components/dashboard/CanvasSection"
 import { KpiSection } from "@/components/dashboard/KpiSection"
 import { OverviewSection } from "@/components/dashboard/OverviewSection"
-import { OwnershipSection } from "@/components/dashboard/OwnershipSection"
 import { SearchSection } from "@/components/dashboard/SearchSection"
 import { StickyHeader } from "@/components/dashboard/StickyHeader"
 import { SummarySection } from "@/components/dashboard/SummarySection"
@@ -66,7 +65,6 @@ export default function App() {
         {!result && !loading && (
           <>
             <SummarySection language={language} />
-            <OwnershipSection language={language} />
             <CanvasSection language={language} />
             <KpiSection language={language} />
           </>

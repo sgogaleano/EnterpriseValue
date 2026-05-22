@@ -17,9 +17,9 @@ CANVAS_BLOCKS = [
 ]
 
 CANVAS_PROMPT_TEMPLATE = """
-You are a world-class business strategist and analyst specializing in the Osterwalder Business Model Canvas.
+You are a business model analyst.
 
-Using all the information provided below about the company "{company_name}", perform an exhaustive Business Model Canvas diagnosis.
+Using the information below for "{company_name}", return ONLY plain text with this exact structure and no extra sections.
 
 --- COMPANY CONTEXT ---
 {context}
@@ -30,32 +30,24 @@ Using all the information provided below about the company "{company_name}", per
 --- MARKET DATA ---
 {market_summary}
 
-For each of the 9 building blocks of the Business Model Canvas, provide:
-1. A specific but complete analysis (1 paragraph) of the current state
-2. Key strengths identified
-3. Key weaknesses or risks
-4. Strategic recommendations
+Output rules:
+- No markdown symbols (#, *, -, **), no bullets, no tables.
+- Each canvas line must be a compact synthesis with max 280 characters.
+- Do not include labels like "Analysis", "Current State Analysis", "Strengths", "Weaknesses", or "Recommendations".
+- If data is missing, write "N/A".
 
-The 9 building blocks are:
-1. Customer Segments - Who are the customers? What are the market segments?
-2. Value Propositions - What value is delivered? Which problems are solved?
-3. Channels - How does the company reach its customer segments?
-4. Customer Relationships - What type of relationship does the company establish?
-5. Revenue Streams - How does the company generate revenue from each customer segment?
-6. Key Resources - What assets are required to make the business model work?
-7. Key Activities - What key activities does the value proposition require?
-8. Key Partnerships - Who are the key partners and suppliers?
-9. Cost Structure - What are the most important costs in the business model?
-
-After the canvas analysis, provide:
-- OVERALL BUSINESS MODEL HEALTH SCORE (0-100) with justification
-- CEO AND MAJOR SHAREHOLDERS
-- SECTOR
-- COMPETITIVE ADVANTAGES
-- MAIN COMPETITORS
-- BUSINESS MODEL ARCHETYPE (e.g., Platform, Long-tail, Freemium, Razor & Blade, etc.)
-
-Be specific, data-driven, and reference actual company details wherever possible.
+Required output format (exactly these 11 lines):
+Customer Segments: <max 280 chars>
+Value Propositions: <max 280 chars>
+Channels: <max 280 chars>
+Customer Relationships: <max 280 chars>
+Revenue Streams: <max 280 chars>
+Key Resources: <max 280 chars>
+Key Activities: <max 280 chars>
+Key Partnerships: <max 280 chars>
+Cost Structure: <max 280 chars>
+CEO: <person name or N/A>
+Major Shareholders: <comma-separated names or N/A>
 """
 
 FINANCIAL_PROMPT_TEMPLATE = """

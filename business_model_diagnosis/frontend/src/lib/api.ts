@@ -4,6 +4,11 @@ export type DiagnosisPayload = {
   skip_market?: boolean
 }
 
+export type OwnershipPayload = {
+  ceo: string
+  major_shareholders: string[]
+}
+
 export type DashboardPayload = {
   name: string
   ticker: string | null
@@ -36,6 +41,7 @@ export type DiagnosisResponse = {
   updated_at: number | null
   dashboard: DashboardPayload
   kpis: KpiRow[]
+  ownership: OwnershipPayload
 }
 
 const BASE = "/api"

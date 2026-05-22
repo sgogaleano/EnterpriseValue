@@ -22,6 +22,8 @@ class FinancialAnalyzer:
         self._balance_sheet: Optional[pd.DataFrame] = None
         self._cashflow: Optional[pd.DataFrame] = None
         self._quarterly_financials: Optional[pd.DataFrame] = None
+        self._institutional_holders: Optional[pd.DataFrame] = None
+        self._mutualfund_holders: Optional[pd.DataFrame] = None
 
     def load_data(self):
         print("  [finance] Loading financial statements from Yahoo Finance...")
@@ -46,6 +48,14 @@ class FinancialAnalyzer:
             self._quarterly_financials = self.yf_ticker.quarterly_financials
         except Exception as e:
             logger.warning(f"Could not load quarterly financials: {e}")
+        try:
+            self._institutional_holders = self.yf_ticker.institutional_holders
+        except Exception as e:
+            logger.warning(f"Could not load institutional holders: {e}")
+        try:
+            self._mutualfund_holders = self.yf_ticker.mutualfund_holders
+        except Exception as e:
+            logger.warning(f"Could not load mutual fund holders: {e}")
 
     def _get_row(self, df: Optional[pd.DataFrame], *keys) -> Optional[pd.Series]:
         if df is None or df.empty:
@@ -403,6 +413,36 @@ class FinancialAnalyzer:
             build_row("Operating Margin", operating_margin),
             build_row("Return on Equity (ROE)", roe),
         ]
+
+    def get_ownership_data(self) -> dict:
+        ceo = str(self._info.get("companyOfficers", [{}])[0].get("name") if isinstance(self._info.get("companyOfficers"), list) and self._info.get("companyOfficers") else "N/A")
+        if not ceo or ceo == "None":
+            ceo = "N/A"
+
+        shareholders: list[str] = []
+        for df in [self._institutional_holders, self._mutualfund_holders]:
+            try:
+                if df is None or df.empty:
+                    continue
+                holder_col = "Holder" if "Holder" in df.columns else None
+                if not holder_col:
+                    continue
+                for raw in df[holder_col].head(6).tolist():
+                    name = str(raw or "").strip()
+                    if name and name not in shareholders:
+                        shareholders.append(name)
+            except Exception:
+                continue
+
+        if not shareholders:
+            direct = self._info.get("majorHoldersBreakdown")
+            if isinstance(direct, list) and direct:
+                shareholders = ["Institutional Holders"]
+
+        return {
+            "ceo": ceo,
+            "major_shareholders": shareholders[:8] if shareholders else ["N/A"],
+        }
 
     def get_market_data_string(self) -> str:
         r = self._compute_ratios()
