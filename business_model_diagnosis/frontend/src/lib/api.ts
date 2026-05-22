@@ -4,6 +4,28 @@ export type DiagnosisPayload = {
   skip_market?: boolean
 }
 
+export type DashboardPayload = {
+  name: string
+  ticker: string | null
+  summary: {
+    industry: string
+    headquarters: string
+    market_cap: string
+    employees: string
+    sector: string
+  }
+  canvas: Record<string, string>
+  financial_text: string
+  market_text: string
+}
+
+export type KpiRow = {
+  kpi: string
+  value: string
+  sectorAvg: string
+  variation: number
+}
+
 export type DiagnosisResponse = {
   company_name: string
   ticker: string | null
@@ -12,6 +34,8 @@ export type DiagnosisResponse = {
   financial_text: string
   market_text: string
   updated_at: number | null
+  dashboard: DashboardPayload
+  kpis: KpiRow[]
 }
 
 const BASE = "/api"

@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import logging
-from typing import Optional, Tuple
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -302,6 +302,107 @@ class FinancialAnalyzer:
             f"Sector: {r['sector']} | Industry: {r['industry']}",
         ]
         return "\n".join(lines)
+
+    @staticmethod
+    def _to_float(value):
+        if value is None or value == "N/A":
+            return None
+        try:
+            return float(value)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _pct(value):
+        if value is None:
+            return "N/A"
+        return f"{value * 100:.2f}%"
+
+    def get_dashboard_summary(self) -> dict:
+        r = self._compute_ratios()
+        return {
+            "industry": str(r.get("industry") or "N/A"),
+            "headquarters": str(r.get("country") or "N/A"),
+            "market_cap": self._fmt(r.get("market_cap"), "B"),
+            "employees": str(r.get("employees") or "N/A"),
+            "sector": str(r.get("sector") or "N/A"),
+        }
+
+    def get_kpi_table(self) -> list:
+        r = self._compute_ratios()
+        sector_name = str((r.get("sector") or "")).strip().lower()
+        revenue_growth = self._to_float(r.get("revenue_growth"))
+        gross_margin = self._to_float(r.get("gross_margins"))
+        operating_margin = self._to_float(r.get("operating_margins"))
+        roe = self._to_float(r.get("return_on_equity"))
+
+        base_benchmarks = {
+            "Revenue Growth (YoY)": 0.08,
+            "Gross Margin": 0.38,
+            "Operating Margin": 0.16,
+            "Return on Equity (ROE)": 0.14,
+        }
+        sector_benchmarks = {
+            "technology": {
+                "Revenue Growth (YoY)": 0.12,
+                "Gross Margin": 0.50,
+                "Operating Margin": 0.22,
+                "Return on Equity (ROE)": 0.18,
+            },
+            "semiconductors": {
+                "Revenue Growth (YoY)": 0.11,
+                "Gross Margin": 0.55,
+                "Operating Margin": 0.24,
+                "Return on Equity (ROE)": 0.20,
+            },
+            "financial services": {
+                "Revenue Growth (YoY)": 0.07,
+                "Gross Margin": 0.32,
+                "Operating Margin": 0.20,
+                "Return on Equity (ROE)": 0.12,
+            },
+            "consumer defensive": {
+                "Revenue Growth (YoY)": 0.05,
+                "Gross Margin": 0.34,
+                "Operating Margin": 0.14,
+                "Return on Equity (ROE)": 0.12,
+            },
+            "energy": {
+                "Revenue Growth (YoY)": 0.06,
+                "Gross Margin": 0.28,
+                "Operating Margin": 0.13,
+                "Return on Equity (ROE)": 0.11,
+            },
+            "healthcare": {
+                "Revenue Growth (YoY)": 0.09,
+                "Gross Margin": 0.46,
+                "Operating Margin": 0.18,
+                "Return on Equity (ROE)": 0.13,
+            },
+        }
+        selected = base_benchmarks
+        for key, values in sector_benchmarks.items():
+            if key in sector_name:
+                selected = values
+                break
+
+        def build_row(kpi_name: str, value: Optional[float]) -> dict:
+            avg = selected[kpi_name]
+            if value is None:
+                return {"kpi": kpi_name, "value": "N/A", "sectorAvg": self._pct(avg), "variation": 0.0}
+            return {
+                "kpi": kpi_name,
+                "value": self._pct(value),
+                "sectorAvg": self._pct(avg),
+                "variation": round((value - avg) * 100, 1),
+            }
+
+        return [
+            build_row("Revenue Growth (YoY)", revenue_growth),
+            build_row("Gross Margin", gross_margin),
+            build_row("Operating Margin", operating_margin),
+            build_row("Return on Equity (ROE)", roe),
+        ]
 
     def get_market_data_string(self) -> str:
         r = self._compute_ratios()

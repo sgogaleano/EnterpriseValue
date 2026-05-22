@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { DiagnosisResponse } from "@/lib/api"
 import type { Language } from "@/data/translations"
 import { translations } from "@/data/translations"
@@ -7,6 +8,30 @@ import { translations } from "@/data/translations"
 type Props = {
   language: Language
   result: DiagnosisResponse
+}
+
+const CANVAS_ORDER = [
+  "Key Partnerships",
+  "Key Activities",
+  "Value Propositions",
+  "Customer Relationships",
+  "Customer Segments",
+  "Key Resources",
+  "Channels",
+  "Cost Structure",
+  "Revenue Streams"
+]
+
+const CANVAS_TITLES: Record<string, { en: string; es: string }> = {
+  "Key Partnerships": { en: "Key Partners", es: "Socios Clave" },
+  "Key Activities": { en: "Key Activities", es: "Actividades Clave" },
+  "Value Propositions": { en: "Value Propositions", es: "Propuesta de Valor" },
+  "Customer Relationships": { en: "Customer Relationships", es: "Relación con Clientes" },
+  "Customer Segments": { en: "Customer Segments", es: "Segmentos de Clientes" },
+  "Key Resources": { en: "Key Resources", es: "Recursos Clave" },
+  Channels: { en: "Channels", es: "Canales" },
+  "Cost Structure": { en: "Cost Structure", es: "Estructura de Costes" },
+  "Revenue Streams": { en: "Revenue Streams", es: "Fuentes de Ingresos" }
 }
 
 function AiTextBlock({ text }: { text: string }) {
@@ -24,6 +49,8 @@ export function DiagnosisResult({ language, result }: Props) {
       })
     : null
 
+  const dashboard = result.dashboard
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -40,13 +67,92 @@ export function DiagnosisResult({ language, result }: Props) {
       </Card>
 
       <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{t.sectionSummary}</CardTitle>
+          <Badge>{t.publicBadge}</Badge>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t.summaryField}</TableHead>
+                <TableHead>{t.summaryValue}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">{language === "en" ? "Industry" : "Industria"}</TableCell>
+                <TableCell>{dashboard.summary.industry}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">{language === "en" ? "Headquarters" : "Sede"}</TableCell>
+                <TableCell>{dashboard.summary.headquarters}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">{language === "en" ? "Market Cap" : "Capitalización"}</TableCell>
+                <TableCell>{dashboard.summary.market_cap}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">{language === "en" ? "Employees" : "Empleados"}</TableCell>
+                <TableCell>{dashboard.summary.employees}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">{language === "en" ? "Sector" : "Sector"}</TableCell>
+                <TableCell>{dashboard.summary.sector}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle>{t.sectionCanvas}</CardTitle>
         </CardHeader>
         <CardContent>
-          <AiTextBlock text={result.canvas_text} />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {CANVAS_ORDER.map((key) => (
+              <div key={key} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <h3 className="mb-2 text-sm font-semibold text-slate-900">{language === "en" ? CANVAS_TITLES[key].en : CANVAS_TITLES[key].es}</h3>
+                <p className="text-sm whitespace-pre-wrap text-slate-700">{dashboard.canvas[key] || "N/A"}</p>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
+
+      {result.kpis.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.sectionKpi}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t.kpiColName}</TableHead>
+                  <TableHead>{t.kpiColValue}</TableHead>
+                  <TableHead>{t.kpiColSector}</TableHead>
+                  <TableHead>{t.kpiColVariation}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {result.kpis.map((row) => (
+                  <TableRow key={row.kpi}>
+                    <TableCell className="font-medium">{row.kpi}</TableCell>
+                    <TableCell>{row.value}</TableCell>
+                    <TableCell>{row.sectorAvg}</TableCell>
+                    <TableCell className={row.variation >= 0 ? "text-emerald-600" : "text-rose-600"}>
+                      {row.variation >= 0 ? "+" : ""}
+                      {row.variation.toFixed(1)}%
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {result.financial_text && (
         <Card>
